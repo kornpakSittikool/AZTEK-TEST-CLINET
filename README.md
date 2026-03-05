@@ -1,81 +1,38 @@
-# AZTEK Client + Prisma + PostgreSQL (Docker)
+# XO Game - คู่มือการรันระบบ
 
-## Local setup (without app in Docker)
+โปรเจกต์นี้เป็น Next.js + Google OAuth + Prisma + PostgreSQL
 
-1. Start PostgreSQL + Adminer
+## วิธีที่ 1: รันด้วย Docker (แนะนำ)
 
-```bash
-docker compose up -d postgres adminer
+### ขั้นที่ 1: เตรียมไฟล์ `.env.local`
+ถ้าใน repo มีไฟล์ `.env.local` อยู่แล้ว สามารถใช้ได้เลย
+ถ้ายังไม่มี ให้สร้างที่ root ของโปรเจกต์ แล้วใส่ค่าแบบนี้
+
+```env
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=replace-with-random-secret
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+DATABASE_URL=postgresql://aztek_user:aztek_password@localhost:5432/aztek_db
 ```
 
-2. Generate Prisma Client and sync schema
-
-```bash
-npm run prisma:generate
-npm run prisma:push
-```
-
-3. Run Next.js
-
-```bash
-npm run dev
-```
-
-## Full Docker setup (app + db + UI)
-
-1. (Optional but recommended) set OAuth values before running:
-
-```bash
-$env:GOOGLE_CLIENT_ID="your_google_client_id"
-$env:GOOGLE_CLIENT_SECRET="your_google_client_secret"
-$env:NEXTAUTH_SECRET="your_nextauth_secret"
-# optional custom ports
-$env:APP_PORT="3000"
-$env:STUDIO_PORT="5555"
-$env:ADMINER_PORT="8080"
-```
-
-2. Start all services:
-
+### ขั้นที่ 2: สั่งรันทุก service
 ```bash
 docker compose up --build -d
 ```
 
-The `prisma-init` service will run first and execute:
-- `npm run prisma:generate`
-- `npm run prisma:push`
+ระบบจะรัน Prisma ให้อัตโนมัติผ่าน `prisma-init`
+- `prisma:generate`
+- `prisma:push`
 
-Then the app starts after database sync is completed.
+### ขั้นที่ 3: เข้าใช้งาน
+- แอปหลัก: http://localhost:3000
+- หน้า Scoreboard: http://localhost:3000/scoreboard
+- Prisma Studio: http://localhost:5555
+- Adminer: http://localhost:8080
 
-3. Access services:
-- App: http://localhost:3000 (or `APP_PORT`)
-- Prisma Studio UI: http://localhost:5555 (or `STUDIO_PORT`)
-- Adminer UI: http://localhost:8080 (or `ADMINER_PORT`)
-
-## Default database credentials
-
-- Host: `postgres`
-- Port: `5432`
-- Database: `aztek_db`
-- Username: `aztek_user`
-- Password: `aztek_password`
-
-## Adminer login fields
-
-In Adminer (`http://localhost:8080`), fill values like this:
-- System: `PostgreSQL`
-- Server: `postgres`
-- Username: `aztek_user`
-- Password: `aztek_password`
-- Database: `aztek_db`
-
-Important: if `System` is `MySQL`, login will fail for this setup.
-
-## Prisma commands
-
+### ขั้นที่ 4: หยุดระบบ
 ```bash
-npm run prisma:generate
-npm run prisma:migrate
-npm run prisma:push
-npm run prisma:studio
+docker compose down
 ```
+

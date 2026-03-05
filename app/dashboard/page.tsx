@@ -1,8 +1,12 @@
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getCurrentWinStreakByUserId } from "@/services/game.service";
+import { upsertUserByEmail } from "@/services/users.service";
 import { SignOutButton } from "./sign-out-button";
+import { XOGame } from "./xo-game";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -12,6 +16,9 @@ export default async function DashboardPage() {
   }
 
   const user = session.user;
+  const dbUser = user.email ? await upsertUserByEmail(user.email) : null;
+  const score = dbUser?.score ?? 0;
+  const winStreak = dbUser ? await getCurrentWinStreakByUserId(dbUser.id) : 0;
 
   return (
     <div className="min-h-screen bg-[#efede8] px-4 py-10 text-[#16243a]">
@@ -40,7 +47,17 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <SignOutButton />
+        <XOGame initialScore={score} initialWinStreak={winStreak} />
+
+        <div className="mt-8 flex items-center gap-3">
+          {/* <Link
+            href="/scoreboard"
+            className="inline-flex rounded-xl border border-[#bdc8d8] px-4 py-2 text-sm font-medium text-[#121b2a] hover:bg-white/70"
+          >
+            Scoreboard
+          </Link> */}
+          <SignOutButton />
+        </div>
       </main>
     </div>
   );

@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 type UpdateUserInput = {
   email?: string;
   score?: number;
-  win_streak?: number;
 };
 
 function normalizeEmail(email: string): string {
@@ -62,6 +61,18 @@ export async function upsertUserByEmail(email: string) {
     create: {
       id: randomUUID(),
       email: normalizedEmail,
+    },
+  });
+}
+
+export async function listUsersByScore() {
+  return prisma.users.findMany({
+    orderBy: [{ score: "desc" }, { created_at: "asc" }],
+    select: {
+      id: true,
+      email: true,
+      score: true,
+      created_at: true,
     },
   });
 }

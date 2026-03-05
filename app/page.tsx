@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 
 export default function Home() {
@@ -56,6 +57,13 @@ export default function Home() {
           <p className="mt-8 text-xs text-[#7a8796]">
             You&apos;ll be redirected to your dashboard after signing in.
           </p>
+
+          <Link
+            href="/scoreboard"
+            className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-[#bdc8d8] bg-transparent px-5 py-3 text-sm font-medium text-[#121b2a] hover:bg-white/60"
+          >
+            View Scoreboard
+          </Link>
         </section>
       </main>
     </div>
