@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AZTEK Client + Prisma + PostgreSQL (Docker)
 
-## Getting Started
+## Local setup (without app in Docker)
 
-First, run the development server:
+1. Start PostgreSQL + Adminer
+
+```bash
+docker compose up -d postgres adminer
+```
+
+2. Generate Prisma Client and sync schema
+
+```bash
+npm run prisma:generate
+npm run prisma:push
+```
+
+3. Run Next.js
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Full Docker setup (app + db + UI)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. (Optional but recommended) set OAuth values before running:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+$env:GOOGLE_CLIENT_ID="your_google_client_id"
+$env:GOOGLE_CLIENT_SECRET="your_google_client_secret"
+$env:NEXTAUTH_SECRET="your_nextauth_secret"
+# optional custom ports
+$env:APP_PORT="3000"
+$env:STUDIO_PORT="5555"
+$env:ADMINER_PORT="8080"
+```
 
-## Learn More
+2. Start all services:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+docker compose up --build -d
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The `prisma-init` service will run first and execute:
+- `npm run prisma:generate`
+- `npm run prisma:push`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Then the app starts after database sync is completed.
 
-## Deploy on Vercel
+3. Access services:
+- App: http://localhost:3000 (or `APP_PORT`)
+- Prisma Studio UI: http://localhost:5555 (or `STUDIO_PORT`)
+- Adminer UI: http://localhost:8080 (or `ADMINER_PORT`)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Default database credentials
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Host: `postgres`
+- Port: `5432`
+- Database: `aztek_db`
+- Username: `aztek_user`
+- Password: `aztek_password`
+
+## Adminer login fields
+
+In Adminer (`http://localhost:8080`), fill values like this:
+- System: `PostgreSQL`
+- Server: `postgres`
+- Username: `aztek_user`
+- Password: `aztek_password`
+- Database: `aztek_db`
+
+Important: if `System` is `MySQL`, login will fail for this setup.
+
+## Prisma commands
+
+```bash
+npm run prisma:generate
+npm run prisma:migrate
+npm run prisma:push
+npm run prisma:studio
+```

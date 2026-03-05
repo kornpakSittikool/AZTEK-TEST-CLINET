@@ -1,0 +1,81 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aztek-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aztek_user
+      POSTGRES_PASSWORD: aztek_password
+      POSTGRES_DB: aztek_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aztek_user -d aztek_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aztek-client-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      prisma-init:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      NEXTAUTH_URL: http://localhost:${APP_PORT:-3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-this-secret}
+      DATABASE_URL: postgresql://aztek_user:aztek_password@postgres:5432/aztek_db?schema=public
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    command: ["npm", "run", "start"]
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
+  prisma-init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aztek-prisma-init
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://aztek_user:aztek_password@postgres:5432/aztek_db?schema=public
+    command: ["sh", "-c", "npm run prisma:generate && npm run prisma:push"]
+    restart: "no"
+
+  prisma-studio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aztek-prisma-studio
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://aztek_user:aztek_password@postgres:5432/aztek_db?schema=public
+    command: ["npm", "run", "prisma:studio", "--", "--port", "5555", "--browser", "none"]
+    ports:
+      - "${STUDIO_PORT:-5555}:5555"
+
+  adminer:
+    image: adminer:4.8.1
+    container_name: aztek-adminer
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+
+volumes:
+  postgres_data:
