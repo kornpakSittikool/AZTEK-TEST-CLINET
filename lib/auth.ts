@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { upsertUserByEmail } from "@/services/users.service";
 
 type GoogleClientSecretsFile = {
   web?: {
@@ -97,6 +98,20 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user }) {
+      if (!user.email) {
+        return false;
+      }
+
+      try {
+        await upsertUserByEmail(user.email);
+
+        return true;
+      } catch (error) {
+        console.error("Failed to upsert user on sign-in", error);
+        return false;
+      }
+    },
     async redirect({ url, baseUrl }) {
       if (url.startsWith("/")) {
         return `${baseUrl}${url}`;
