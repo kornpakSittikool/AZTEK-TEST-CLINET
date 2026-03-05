@@ -30,5 +30,10 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "types/validator.ts",
+    ".next/dev/types/validator.ts",
+    ".next/types/validator.ts"
+  ]
 }
